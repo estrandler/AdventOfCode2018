@@ -56,7 +56,5 @@ fs.readFile("./4/4.txt", "utf8", function (error, data) {
         };
     }).sort((x,y) => y.numberOfMinutesAsleep - x.numberOfMinutesAsleep)[0];
 
-    console.log('id', sleepyGuard.id);
-    console.log('minute', sleepyGuard.mostSlept);
     console.log(sleepyGuard.id * sleepyGuard.mostSlept);
 })
