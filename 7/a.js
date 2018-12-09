@@ -5,76 +5,60 @@ fs.readFile("./7/7.txt", "utf8", function (error, data) {
         console.log(error);
     }
 
-    let getChildren = (node, instructions) => {
-        return instructions.filter(val => val.dependentOn === node.id).sort((a, b) => ('' + a.id).localeCompare(b.id));
-    }
+    let Run = (instructions) => {
+        instructions.forEach(qi => {
+            let depen = instructions.filter(q => q.dependecies.indexOf(qi.id) !== -1);
 
-    let allDependenciesAreSolved = (node, resultArr) => {
-        let debug = ['B', 'D', 'H', 'I', 'O', 'X'].indexOf(node.id) !== -1;
-
-        if (debug)
-            console.log('debug');
-
-        let allSolved = true;
-
-        for (let i = 0; i < node.dependecies.length; i++) {
-            if (resultArr.indexOf(node.dependecies[i]) === -1) {
-                allSolved = false;
-                break;
+            if (depen.length === 0) {
+                qi.isReady = true;
             }
-        }
-        return allSolved;
-    }
-
-    let pushToResultRecursively = (node, instructions, obj, resultArr) => {
-        if (node.dependecies.length === 0)
-            resultArr.push(node.id);
-
-        else if (allDependenciesAreSolved(node, resultArr))
-            resultArr.push(node.id);
-
-
-        var children = getChildren(node, instructions);
-
-
-        children.forEach(child => {
-            pushToResultRecursively(obj[child.id], instructions, obj, resultArr);
         });
 
-        return;
+        let ready = instructions.filter(q => q.isReady === true);
+
+
+        if (ready.length > 0) {
+            let firstReady = ready.sort((a, b) => ('' + a.id).localeCompare(b.id))[0];
+            order += '' + firstReady.id;
+            instructions = instructions.filter(x => x.id !== firstReady.id);
+        }
+
+        if (instructions.length > 0) {
+            Run(instructions);
+        }
     }
 
-    let order = [];
     let obj = {};
+    let order = '';
     let instructions = data.split('\r\n').map((val) => {
         return {
-            id: val.split(' ')[7],
-            dependentOn: val.split(' ')[1]
+            id: val.split(' ')[1],
+            dependentOn: val.split(' ')[7]
         }
     });
 
     instructions.forEach(val => {
-        if (obj[val.id] && obj[val.id].dependecies) {
+        if (obj[val.id])
             obj[val.id].dependecies.push(val.dependentOn);
-        }
         else
             obj[val.id] = {
                 id: val.id,
+                isReady: false,
                 dependecies: [val.dependentOn]
             }
 
-        if (!obj[val.dependentOn])
+        if (!obj[val.dependentOn]) {
             obj[val.dependentOn] = {
                 id: val.dependentOn,
+                isReady: false,
                 dependecies: []
-            }
+            };
+        }
     });
 
-    let starter = Object.keys(obj).sort((x, y) => obj[x].dependecies.length - obj[y].dependecies.length)[0];
+    instructions = Object.keys(obj).map(x => obj[x]);
 
-    pushToResultRecursively(obj[starter], instructions, obj, order);
+    Run(instructions);
 
-
-    console.log(order.join(''));
-
+    console.log(order);
 })
